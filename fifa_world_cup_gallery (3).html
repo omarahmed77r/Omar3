@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FIFA WORLD CUP</title>
+    
+    <!-- الخطوط: القاهرة للغة العربية، و مونتسيرات للغة الإنجليزية -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&family=Montserrat:wght@700;900&display=swap" rel="stylesheet">
+    <!-- أيقونات FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- مكتبة Tailwind CSS للتنسيق السريع والمتجاوب -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- إعدادات Tailwind لتخصيص الألوان والخطوط -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        navy: '#0b132b',
+                        navy_light: '#1c2541',
+                        gold: '#d4af37',
+                        gold_light: '#f9d976',
+                        glass: 'rgba(255, 255, 255, 0.05)',
+                        glass_border: 'rgba(255, 255, 255, 0.1)'
+                    },
+                    fontFamily: {
+                        cairo: ['Cairo', 'sans-serif'],
+                        montserrat: ['Montserrat', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* التنسيقات الأساسية */
+        :root {
+            --gold: #d4af37;
+            --navy: #0b132b;
+        }
+        
+        body {
+            font-family: 'Cairo', sans-serif;
+            background-color: var(--navy);
+            color: white;
+            overflow-x: hidden;
+            scroll-behavior: smooth;
+        }
+
+        .en-text {
+            font-family: 'Montserrat', sans-serif;
+        }
+
+        /* خلفية الجسيمات */
+        #particles-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background: radial-gradient(circle at center, #1c2541 0%, #050914 100%);
+        }
+
+        /* تأثير الزجاج (Glassmorphism) */
+        .glass-effect {
+            background: rgba(28, 37, 65, 0.4);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+
+        /* تأثيرات الإضاءة والتوهج */
+        .text-glow {
+            text-shadow: 0 0 15px rgba(212, 175, 55, 0.6);
+        }
+        
+        .box-glow:hover {
+            box-shadow: 0 0 25px rgba(212, 175, 55, 0.4);
+        }
+
+        /* حركات الظهور (Scroll Reveal) */
+        .reveal {
+            opacity: 0;
+            transform: translateY(40px);
+            transition: all 0.8s cubic-bezier(0.5, 0, 0, 1);
+        }
+        .reveal.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* شريط التنقل المتغير */
+        .navbar {
+            transition: all 0.4s ease;
+        }
+        .navbar.scrolled {
+            background: rgba(11, 19, 43, 0.9);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(212, 175, 55, 0.2);
+            padding-top: 10px;
+            padding-bottom: 10px;
+        }
+
+        /* إعدادات المعرض الدائري (Carousel) */
+        .carousel-container {
+            overflow: hidden;
+            white-space: nowrap;
+            position: relative;
+            width: 100%;
+            padding: 40px 0;
+        }
+
+        /* تدرج جانبي لإخفاء حواف المعرض بنعومة */
+        .carousel-container::before,
+        .carousel-container::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            width: 100px;
+            height: 100%;
+            z-index: 2;
+        }
+        .carousel-container::before {
+            left: 0;
+            background: linear-gradient(to right, var(--navy) 0%, transparent 100%);
+        }
+        .carousel-container::after {
+            right: 0;
+            background: linear-gradient(to left, var(--navy) 0%, transparent 100%);
+        }
+
+        .carousel-track {
+            display: inline-flex;
+            /* سرعة الحركة - اللوب اللانهائي */
+            animation: scroll 40s linear infinite; 
+        }
+        
+        /* إيقاف الحركة عند وقوف الماوس */
+        .carousel-track:hover {
+            animation-play-state: paused;
+        }
+
+        /* تحريك من اليمين لليسار */
+        @keyframes scroll {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); } 
+        }
+
+        /* تنسيق صور المعرض */
+        .gallery-img {
+            height: 320px;
+            width: 240px;
+            object-fit: cover;
+            border-radius: 16px;
+            margin: 0 15px;
+            cursor: pointer;
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), border-color 0.4s ease;
+            border: 2px solid transparent;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+            /* لمنع تحديد الصورة */
+            user-select: none;
+            -webkit-user-drag: none;
+        }
+
+        @media (max-width: 768px) {
+            .gallery-img {
+                height: 240px;
+                width: 180px;
+            }
+        }
+
+        .gallery-img:hover {
+            transform: scale(1.08) translateY(-10px);
+            border-color: var(--gold);
+            box-shadow: 0 15px 30px rgba(212, 175, 55, 0.3);
+            z-index: 10;
+            position: relative;
+        }
+
+        /* النافذة المنبثقة للصور (Lightbox) */
+        #lightbox {
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.4s ease;
+            backdrop-filter: blur(15px);
+        }
+        #lightbox.show {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        #lightbox-img {
+            transform: scale(0.8);
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            max-height: 90vh;
+            max-width: 90vw;
+            border-radius: 12px;
+            box-shadow: 0 0 40px rgba(0,0,0,0.8);
+        }
+        #lightbox.show #lightbox-img {
+            transform: scale(1);
+        }
+
+        /* أزرار مخصصة */
+        .btn-gold {
+            background: linear-gradient(135deg, #d4af37 0%, #f9d976 100%);
+            color: #050914;
+            transition: all 0.3s ease;
+        }
+        .btn-gold:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(212, 175, 55, 0.4);
+        }
+
+        /* بطاقات اللحظات المميزة */
+        .feature-card {
+            transition: transform 0.4s ease, box-shadow 0.4s ease, border-color 0.4s ease;
+        }
+        .feature-card:hover {
+            transform: translateY(-10px);
+            border-color: var(--gold);
+            box-shadow: 0 10px 30px rgba(212, 175, 55, 0.15);
+        }
+        .feature-card .icon-wrapper {
+            transition: transform 0.4s ease;
+        }
+        .feature-card:hover .icon-wrapper {
+            transform: scale(1.1) rotate(5deg);
+        }
+    </style>
+</head>
+<body class="antialiased selection:bg-gold selection:text-navy">
+
+    <!-- لوحة الرسم لجسيمات الخلفية -->
+    <canvas id="particles-canvas"></canvas>
+
+    <!-- شريط التنقل -->
+    <nav class="navbar fixed top-0 w-full z-50 py-4 transition-all duration-300">
+        <div class="container mx-auto px-6 flex justify-between items-center">
+            <a href="#" class="en-text text-2xl font-black text-white tracking-wider flex items-center gap-2">
+                <i class="fa-solid fa-trophy text-gold"></i>
+                <span>FIFA <span class="text-gold">WORLD CUP</span></span>
+            </a>
+            
+            <!-- روابط التنقل (تختفي في الشاشات الصغيرة) -->
+            <div class="hidden md:flex gap-8 text-sm font-semibold">
+                <a href="#hero" class="hover:text-gold transition-colors">الرئيسية</a>
+                <a href="#gallery" class="hover:text-gold transition-colors">المعرض</a>
+                <a href="#overview" class="hover:text-gold transition-colors">نظرة عامة</a>
+                <a href="#featured" class="hover:text-gold transition-colors">لحظات مميزة</a>
+            </div>
+
+            <!-- زر القائمة للهاتف -->
+            <button class="md:hidden text-white text-2xl focus:outline-none">
+                <i class="fa-solid fa-bars"></i>
+            </button>
+        </div>
+    </nav>
+
+    <!-- قسم البداية (Hero) -->
+    <header id="hero" class="min-h-screen flex items-center justify-center relative pt-20">
+        <div class="container mx-auto px-6 text-center z-10">
+            <div class="reveal">
+                <h1 class="en-text text-5xl md:text-7xl lg:text-8xl font-black mb-4 text-glow tracking-tighter">
+                    <span class="text-white">FIFA</span> 
+                    <span class="text-gold">WORLD CUP</span>
+                </h1>
+                <p class="text-xl md:text-3xl font-semibold mb-8 text-gray-300 max-w-2xl mx-auto leading-relaxed">
+                    أعظم بطولة كرة قدم في العالم.
+                </p>
+                <div class="flex justify-center gap-4">
+                    <a href="#gallery" class="btn-gold px-8 py-3 rounded-full font-bold text-lg inline-flex items-center gap-2">
+                        <span>استعرض الصور</span>
+                        <i class="fa-solid fa-arrow-left"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- مؤشر النزول للأسفل -->
+        <div class="absolute bottom-10 left-1/2 transform -translate-x-1/2 animate-bounce">
+            <a href="#gallery" class="text-white/50 hover:text-gold transition-colors">
+                <i class="fa-solid fa-chevron-down text-3xl"></i>
+            </a>
+        </div>
+    </header>
+
+    <!-- قسم معرض الصور (Carousel) -->
+    <section id="gallery" class="py-20 relative">
+        <div class="container mx-auto px-6 mb-12 text-center reveal">
+            <h2 class="en-text text-3xl md:text-5xl font-black text-white mb-2">
+                <span class="text-gold">EPIC</span> MOMENTS
+            </h2>
+            <div class="w-24 h-1 bg-gold mx-auto rounded-full"></div>
+        </div>
+
+        <!-- تم استخدام dir="ltr" لضمان عمل حركة المعرض رياضياً بشكل صحيح وسلس -->
+        <div class="carousel-container" dir="ltr">
+            <div class="carousel-track" id="gallery-track">
+                <!-- سيتم حقن الصور هنا بواسطة JavaScript -->
+            </div>
+        </div>
+    </section>
+
+    <!-- قسم النظرة العامة (Overview) -->
+    <section id="overview" class="py-20">
+        <div class="container mx-auto px-6">
+            <div class="glass-effect rounded-3xl p-8 md:p-16 text-center max-w-5xl mx-auto reveal border-t border-white/10 relative overflow-hidden">
+                <!-- عنصر ديكور -->
+                <div class="absolute top-0 right-0 w-32 h-32 bg-gold/10 rounded-full blur-3xl -mr-16 -mt-16"></div>
+                <div class="absolute bottom-0 left-0 w-40 h-40 bg-blue-500/10 rounded-full blur-3xl -ml-20 -mb-20"></div>
+
+                <h2 class="text-3xl md:text-4xl font-black text-gold mb-8 en-text uppercase tracking-widest">
+                    Overview
+                </h2>
+                <p class="text-lg md:text-2xl leading-relaxed text-gray-200 mb-12 font-semibold">
+                    "تُعد بطولة كأس العالم FIFA أكبر بطولة لكرة القدم على مستوى العالم، حيث تتنافس أفضل المنتخبات الوطنية للفوز بالكأس الأغلى في عالم كرة القدم. يعرض هذا الموقع مجموعة من أشهر اللاعبين واللحظات التاريخية والمباريات التي صنعت تاريخ البطولة."
+                </p>
+                
+                <!-- الأيقونات -->
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
+                    <div class="flex flex-col items-center gap-3 group">
+                        <div class="w-16 h-16 rounded-full glass-effect flex items-center justify-center text-3xl transition-transform group-hover:scale-110 group-hover:bg-gold/20">
+                            🏆
+                        </div>
+                        <span class="font-bold text-gray-300">البطولة</span>
+                    </div>
+                    <div class="flex flex-col items-center gap-3 group">
+                        <div class="w-16 h-16 rounded-full glass-effect flex items-center justify-center text-3xl transition-transform group-hover:scale-110 group-hover:bg-gold/20">
+                            ⚽
+                        </div>
+                        <span class="font-bold text-gray-300">كرة القدم</span>
+                    </div>
+                    <div class="flex flex-col items-center gap-3 group">
+                        <div class="w-16 h-16 rounded-full glass-effect flex items-center justify-center text-3xl transition-transform group-hover:scale-110 group-hover:bg-gold/20">
+                            🌍
+                        </div>
+                        <span class="font-bold text-gray-300">المنتخبات</span>
+                    </div>
+                    <div class="flex flex-col items-center gap-3 group">
+                        <div class="w-16 h-16 rounded-full glass-effect flex items-center justify-center text-3xl transition-transform group-hover:scale-110 group-hover:bg-gold/20">
+                            ⭐
+                        </div>
+                        <span class="font-bold text-gray-300">الأساطير</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- قسم اللحظات المميزة (Featured Moments) -->
+    <section id="featured" class="py-20 relative">
+        <div class="container mx-auto px-6">
+            <div class="text-center mb-16 reveal">
+                <h2 class="en-text text-3xl md:text-5xl font-black text-white mb-2">
+                    FEATURED <span class="text-gold">MOMENTS</span>
+                </h2>
+                <div class="w-24 h-1 bg-gold mx-auto rounded-full"></div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                
+                <!-- البطاقة 1 -->
+                <div class="feature-card glass-effect rounded-2xl p-6 text-center reveal" style="transition-delay: 100ms;">
+                    <div class="icon-wrapper w-20 h-20 mx-auto bg-gradient-to-br from-gold/20 to-transparent rounded-full flex items-center justify-center mb-6 border border-gold/30 text-4xl">
+                        🏆
+                    </div>
+                    <h3 class="en-text text-xl font-bold text-gold mb-3">Legendary Players</h3>
+                    <p class="text-gray-400 text-sm leading-relaxed">
+                        أساطير حفروا أسماءهم بأحرف من ذهب في تاريخ الساحرة المستديرة، وقدموا أداءً لا يُنسى.
+                    </p>
+                </div>
+
+                <!-- البطاقة 2 -->
+                <div class="feature-card glass-effect rounded-2xl p-6 text-center reveal" style="transition-delay: 200ms;">
+                    <div class="icon-wrapper w-20 h-20 mx-auto bg-gradient-to-br from-gold/20 to-transparent rounded-full flex items-center justify-center mb-6 border border-gold/30 text-4xl">
+                        ⚽
+                    </div>
+                    <h3 class="en-text text-xl font-bold text-gold mb-3">Historic Matches</h3>
+                    <p class="text-gray-400 text-sm leading-relaxed">
+                        مواجهات حاسمة، أهداف قاتلة، وريمونتادا تاريخية جعلت قلوب المشجعين تتوقف للحظات.
+                    </p>
+                </div>
+
+                <!-- البطاقة 3 -->
+                <div class="feature-card glass-effect rounded-2xl p-6 text-center reveal" style="transition-delay: 300ms;">
+                    <div class="icon-wrapper w-20 h-20 mx-auto bg-gradient-to-br from-gold/20 to-transparent rounded-full flex items-center justify-center mb-6 border border-gold/30 text-4xl">
+                        🌍
+                    </div>
+                    <h3 class="en-text text-xl font-bold text-gold mb-3">Passionate Fans</h3>
+                    <p class="text-gray-400 text-sm leading-relaxed">
+                        جماهير من كافة أنحاء العالم تتحد لدعم منتخباتها، تصنع لوحات فنية وأجواء خيالية.
+                    </p>
+                </div>
+
+                <!-- البطاقة 4 -->
+                <div class="feature-card glass-effect rounded-2xl p-6 text-center reveal" style="transition-delay: 400ms;">
+                    <div class="icon-wrapper w-20 h-20 mx-auto bg-gradient-to-br from-gold/20 to-transparent rounded-full flex items-center justify-center mb-6 border border-gold/30 text-4xl">
+                        🏟️
+                    </div>
+                    <h3 class="en-text text-xl font-bold text-gold mb-3">Iconic Stadiums</h3>
+                    <p class="text-gray-400 text-sm leading-relaxed">
+                        ملاعب أسطورية، تحف معمارية، ساحات معارك كروية شهدت رفع الكأس الأغلى في العالم.
+                    </p>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- التذييل (Footer) -->
+    <footer class="glass-effect border-t border-white/10 py-8 text-center relative z-10">
+        <div class="container mx-auto px-6">
+            <h2 class="en-text text-2xl font-black text-white mb-4 tracking-wider">
+                FIFA <span class="text-gold">WORLD CUP</span>
+            </h2>
+            <p class="en-text text-gray-400 text-sm mb-2">
+                © 2026 FIFA WORLD CUP Gallery
+            </p>
+            <p class="text-gray-500 text-sm flex items-center justify-center gap-1">
+                Designed with <i class="fa-solid fa-heart text-red-500 animate-pulse mx-1"></i>
+            </p>
+        </div>
+    </footer>
+
+    <!-- هيكل نافذة العرض المكبرة للصور (Lightbox) -->
+    <div id="lightbox" class="fixed inset-0 z-[100] bg-black/90 flex items-center justify-center" onclick="closeLightbox()">
+        <!-- زر الإغلاق -->
+        <button class="absolute top-6 right-6 text-white hover:text-gold text-4xl transition-colors focus:outline-none" onclick="closeLightbox()">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+        <!-- الصورة المكبرة -->
+        <img id="lightbox-img" src="" alt="Full Screen Match Image" onclick="event.stopPropagation()">
+    </div>
+
+    <!-- سكريبتات التفاعل والحركة -->
+    <script>
+        // --- 1. تحميل معرض الصور تلقائياً (Carousel Generator) ---
+        document.addEventListener('DOMContentLoaded', () => {
+            const track = document.getElementById('gallery-track');
+            const totalImages = 18;
+            let imagesHTML = '';
+
+            // دالة مساعدة لإنشاء HTML الصورة
+            const createImageElement = (i) => {
+                // وضعنا onerror كإجراء احترازي بحيث إذا لم يقم المستخدم بإنشاء مجلد الصور بعد، 
+                // تظهر صورة بديلة أنيقة تحافظ على شكل الموقع ولا ينهار التصميم.
+                const imagePath = `img/${String(i).padStart(2, '0')}.jpeg`;
+                const fallbackSrc = `https://placehold.co/400x600/1c2541/d4af37?text=FIFA+${i}`;
+                
+                return `
+                    <img 
+                        src="${imagePath}" 
+                        alt="FIFA World Cup Moment ${i}" 
+                        class="gallery-img" 
+                        loading="lazy" 
+                        onclick="openLightbox(this.src)"
+                        onerror="this.onerror=null; this.src='${fallbackSrc}';"
+                    >
+                `;
+            };
+
+            // إنشاء الصور من 1 إلى 18
+            for (let i = 1; i <= totalImages; i++) {
+                imagesHTML += createImageElement(i);
+            }
+
+            // لتكوين حلقة لا نهائية (Infinite Loop) نقوم بنسخ المجموعة مرتين لتمر بسلاسة
+            track.innerHTML = imagesHTML + imagesHTML;
+        });
+
+
+        // --- 2. نافذة عرض الصور (Lightbox) ---
+        const lightbox = document.getElementById('lightbox');
+        const lightboxImg = document.getElementById('lightbox-img');
+
+        function openLightbox(src) {
+            lightboxImg.src = src;
+            lightbox.classList.add('show');
+            document.body.style.overflow = 'hidden'; // منع التمرير في الخلفية
+        }
+
+        function closeLightbox() {
+            lightbox.classList.remove('show');
+            // تأخير إزالة الصورة حتى تنتهي حركة الإخفاء
+            setTimeout(() => {
+                lightboxImg.src = '';
+                document.body.style.overflow = 'auto'; // إعادة التمرير
+            }, 400);
+        }
+
+        // إغلاق النافذة عند الضغط على زر ESC
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && lightbox.classList.contains('show')) {
+                closeLightbox();
+            }
+        });
+
+
+        // --- 3. تأثير شريط التنقل عند التمرير (Navbar Scroll) ---
+        const navbar = document.querySelector('.navbar');
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 50) {
+                navbar.classList.add('scrolled');
+            } else {
+                navbar.classList.remove('scrolled');
+            }
+        });
+
+
+        // --- 4. حركات الظهور الاحترافية عند التمرير (Scroll Reveal Animations) ---
+        const revealElements = document.querySelectorAll('.reveal');
+        
+        const revealObserver = new IntersectionObserver((entries, observer) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('active');
+                    // إيقاف المراقبة بعد الظهور الأول لضمان بقائها ظاهرة
+                    observer.unobserve(entry.target); 
+                }
+            });
+        }, {
+            root: null,
+            threshold: 0.15, // تفعيل الحركة عند ظهور 15% من العنصر
+            rootMargin: "0px 0px -50px 0px"
+        });
+
+        revealElements.forEach(el => revealObserver.observe(el));
+
+
+        // --- 5. خلفية الجسيمات المتحركة (Particles Canvas) ---
+        const canvas = document.getElementById('particles-canvas');
+        const ctx = canvas.getContext('2d');
+        
+        let width, height, particles = [];
+
+        function initCanvas() {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+            particles = [];
+            const particleCount = window.innerWidth < 768 ? 40 : 80;
+
+            for (let i = 0; i < particleCount; i++) {
+                particles.push({
+                    x: Math.random() * width,
+                    y: Math.random() * height,
+                    radius: Math.random() * 2 + 0.5,
+                    vx: (Math.random() - 0.5) * 0.5, // سرعة أفقية
+                    vy: (Math.random() - 0.5) * 0.5, // سرعة عمودية
+                    alpha: Math.random() * 0.5 + 0.1
+                });
+            }
+        }
+
+        function drawParticles() {
+            ctx.clearRect(0, 0, width, height);
+            
+            particles.forEach(p => {
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(212, 175, 55, ${p.alpha})`; // لون ذهبي مع شفافية متغيرة
+                ctx.fill();
+
+                // تحديث موقع الجسيم
+                p.x += p.vx;
+                p.y += p.vy;
+
+                // إعادة الجسيمات إذا خرجت من الشاشة
+                if (p.x < 0) p.x = width;
+                if (p.x > width) p.x = 0;
+                if (p.y < 0) p.y = height;
+                if (p.y > height) p.y = 0;
+            });
+
+            requestAnimationFrame(drawParticles);
+        }
+
+        // تشغيل نظام الجسيمات
+        window.addEventListener('resize', initCanvas);
+        initCanvas();
+        drawParticles();
+        
+    </script>
+
+    <!-- موسيقى الخلفية -->
+    <audio id="bgMusic" loop>
+      <source src="https://raw.githubusercontent.com/omarahmed77r/Omar3/main/shakira.mp3" type="audio/mpeg">
+    </audio>
+
+    <script>
+    window.addEventListener("click", () => {
+      document.getElementById("bgMusic").play();
+    }, { once: true });
+    </script>
+</body>
+</html>
